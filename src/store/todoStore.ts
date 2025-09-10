@@ -26,5 +26,4 @@ const useTodoStore = create<TodoStore>()(
   )
 )
 
-
 export default useTodoStore;
