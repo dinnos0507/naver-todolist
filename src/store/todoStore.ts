@@ -1,24 +1,57 @@
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
 
+type Todo = {
+  text: string;
+  done: boolean;
+  date: string;
+}
 type TodoStore = {
-  todos: string[];
-  addTodo: (todo: string) => void;
+  todos: Todo[];
+  addTodo: (text: string) => void;
   removeTodo: (index: number) => void;
+  toggleTodo: (index: number) => void;
 }
 
 const useTodoStore = create<TodoStore>()(
   persist<TodoStore>(
     (set) => ({
       todos: [],
-      addTodo: (todo) =>
-        set((state) => ({
-          todos: [...state.todos, todo],
-        })),
+
+      addTodo: (text) =>
+        set((state) => { 
+          const newTodo: Todo = {
+            text,
+            done: false,
+            date: new Date().toISOString(),
+          }
+
+          return {todos: [newTodo, ...state.todos]}
+        }),
       removeTodo: (index) =>
         set((state) => ({
           todos: state.todos.filter((_, i) => i !== index),
         })),
+      toggleTodo: (index) =>
+        set((state) => { 
+          const todos = [...state.todos]
+          const todo = { ...todos[index], done: !todos[index].done }
+          
+          todos.splice(index, 1)
+          
+          if (todo.done) {
+            const firstDoneIndex = todos.findIndex((t) => t.done)
+            if (firstDoneIndex === -1) {
+              todos.push(todo)
+            } else {
+              todos.splice(firstDoneIndex,0,todo)
+            } 
+          } else {
+            todos.unshift(todo)
+          }
+
+          return {todos}
+        })
     }),
     {
       name: "todo-storage",
